@@ -57,8 +57,6 @@ class TransactionService[F[_]: Concurrent](val transactionChainService: Transact
   def createTransaction(
     src: String,
     dst: String,
-    prevTxRef: String,
-    ordinal: Long,
     amount: Long,
     keyPair: KeyPair,
     normalized: Boolean = true,
