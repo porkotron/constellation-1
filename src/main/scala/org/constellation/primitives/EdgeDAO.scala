@@ -219,7 +219,7 @@ trait EdgeDAO {
   var genesisBlock: Option[CheckpointBlock] = None
   var genesisObservation: Option[GenesisObservation] = None
 
-  var rollbackLoader: RollbackLoader = _
+  var rollbackLoader: RollbackLoader[IO] = _
 
   def maxWidth: Int = processingConfig.maxWidth
 

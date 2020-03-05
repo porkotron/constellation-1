@@ -15,11 +15,7 @@ import org.constellation.p2p.PeerState.PeerState
 import org.constellation.primitives.IPManager
 import org.constellation.primitives.Schema.NodeState
 import org.constellation.primitives.Schema.NodeState.{NodeState, broadcastStates}
-import org.constellation.rollback.{
-  CannotLoadGenesisObservationFile,
-  CannotLoadSnapshotInfoFile,
-  CannotLoadSnapshotsFiles
-}
+import org.constellation.rollback.{CannotLoadGenesisObservationFile, CannotLoadSnapshot}
 import org.constellation.schema.Id
 import org.constellation.util.Logging._
 import org.constellation.util._
@@ -514,10 +510,8 @@ class Cluster[F[_]: Concurrent: Timer: ContextShift](
         _.fold(
           { err =>
             err match {
-              case CannotLoadSnapshotInfoFile(path) =>
-                logger.warn(s"Node has no SnapshotInfo backup in path: ${path}. Skipping the rollback.")
-              case CannotLoadSnapshotsFiles(path) =>
-                logger.warn(s"Node has no Snapshots backup in path: ${path}. Skipping the rollback.")
+              case CannotLoadSnapshot(hash) =>
+                logger.warn(s"Node has no Snapshots backup in path: ${hash}. Skipping the rollback.")
               case CannotLoadGenesisObservationFile(path) =>
                 logger.warn(s"Node has no Genesis observation backup in path: ${path}. Skipping the rollback.")
               case _ => logger.error(s"Rollback failed: ${err}")

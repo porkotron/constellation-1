@@ -1,44 +1,44 @@
 package org.constellation.rollback
 
 import better.files.File
+import cats.data.EitherT
+import cats.effect.Concurrent
+import cats.implicits._
 import org.constellation.consensus.StoredSnapshot
-import org.constellation.domain.snapshot.SnapshotInfo
-import org.constellation.domain.snapshotInfo.SnapshotInfoChunk
+import org.constellation.domain.snapshot.{SnapshotInfo, SnapshotInfoStorage, SnapshotStorage}
 import org.constellation.primitives.Schema.GenesisObservation
 import org.constellation.serializer.KryoSerializer
 
-import scala.util.Try
+class RollbackLoader[F[_]](
+  snapshotInfoStorage: SnapshotInfoStorage[F],
+  snapshotStorage: SnapshotStorage[F],
+  genesisObservationPath: File
+)(implicit F: Concurrent[F]) {
 
-class RollbackLoader(
-  snapshotsPath: String,
-  snapshotInfoPath: String,
-  genesisObservationPath: String
-) {
+  def loadSnapshotsFromFile(): EitherT[F, RollbackException, List[(StoredSnapshot, SnapshotInfo)]] =
+    for {
+      hashes <- snapshotStorage.getSnapshotHashes.attemptT
+        .leftMap(_ => CannotLoadSnapshotHashes)
+        .leftWiden[RollbackException]
 
-  def loadSnapshotsFromFile(): Either[RollbackException, Seq[StoredSnapshot]] =
-    Try(deserializeAllFromDirectory[StoredSnapshot](snapshotsPath))
-      .map(Right(_))
-      .getOrElse(Left(CannotLoadSnapshotsFiles(snapshotsPath)))
+      snapshots <- hashes.traverse { hash =>
+        snapshotStorage
+          .readSnapshot(hash)
+          .product(snapshotInfoStorage.readSnapshotInfo(hash))
+          .leftMap(_ => CannotLoadSnapshot(hash))
+          .leftWiden[RollbackException]
+      }
+    } yield snapshots
 
-  def loadSnapshotInfoFromFile(): Either[RollbackException, SnapshotInfo] =
-    Try(deserializeFromFile[SnapshotInfo](snapshotInfoPath)).toEither
-      .map(Right(_))
-      .getOrElse(Left(CannotLoadSnapshotInfoFile(snapshotInfoPath)))
-
-  def loadGenesisObservation(): Either[RollbackException, GenesisObservation] =
-    Try(deserializeFromFile[GenesisObservation](genesisObservationPath))
-      .map(Right(_))
-      .getOrElse(Left(CannotLoadGenesisObservationFile(genesisObservationPath)))
-
-  private def deserializeFromFile[T](path: String): T =
-    KryoSerializer.deserializeCast[T](File(path).byteArray)
-
-  private def deserializeAllFromDirectory[T](directory: String): Seq[T] =
-    getListFilesFromDirectory(directory).map(s => deserializeFromFile[T](s))
-
-  private def getListFilesFromDirectory(directory: String): Seq[File] =
-    File(directory).list.toSeq
-
-  private def deserializeFromFile[T](file: File): T =
-    KryoSerializer.deserializeCast(file.byteArray)
+  def loadGenesisObservation(): EitherT[F, RollbackException, GenesisObservation] =
+    F.delay { genesisObservationPath }.flatMap { go =>
+      F.delay {
+        go.byteArray
+      }
+    }.flatMap { a =>
+      F.delay {
+        KryoSerializer.deserializeCast[GenesisObservation](a)
+      }
+    }.attemptT
+      .leftMap(_ => CannotLoadGenesisObservationFile(genesisObservationPath.pathAsString))
 }

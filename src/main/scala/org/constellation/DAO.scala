@@ -296,9 +296,9 @@ class DAO() extends NodeData with EdgeDAO with SimpleWalletLike with StrictLoggi
     consensusScheduler = new ConsensusScheduler(ConfigUtil.config, consensusManager, cluster, this)
 
     rollbackLoader = new RollbackLoader(
-      snapshotPath,
-      snapshotInfoPath,
-      genesisObservationPath.pathAsString
+      snapshotInfoStorage,
+      snapshotStorage,
+      genesisObservationPath
     )
 
     rollbackService = new RollbackService[IO](

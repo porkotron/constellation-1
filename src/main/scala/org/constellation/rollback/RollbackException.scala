@@ -1,15 +1,15 @@
 package org.constellation.rollback
 
-sealed trait RollbackException extends Throwable
+trait RollbackException extends Throwable
+
+case class CannotLoadGenesisObservationFile(path: String) extends RollbackException
+
+case class CannotLoadSnapshot(hash: String) extends RollbackException
+
+object CannotLoadSnapshotHashes extends RollbackException
+
+object CannotWriteToDisk extends RollbackException
 
 object InvalidBalances extends RollbackException
 
 object CannotCalculate extends RollbackException
-
-case class CannotLoadSnapshotsFiles(path: String) extends RollbackException
-
-case class CannotLoadGenesisObservationFile(path: String) extends RollbackException
-
-case class CannotLoadSnapshotInfoFile(path: String) extends RollbackException
-
-object CannotWriteToDisk extends RollbackException

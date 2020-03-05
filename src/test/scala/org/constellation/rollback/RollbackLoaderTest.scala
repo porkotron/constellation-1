@@ -57,7 +57,7 @@ class RollbackLoaderTest extends FreeSpec with ArgumentMatchersSugar with Before
       val snapshotInfo = loaderForNotExistingFolder.loadSnapshotInfoFromFile()
 
       snapshotInfo.isLeft shouldBe true
-      snapshotInfo.left.get shouldBe a[CannotLoadSnapshotInfoFile]
+      snapshotInfo.left.get shouldBe a[CannotLoadSnapshot]
     }
   }
 }
