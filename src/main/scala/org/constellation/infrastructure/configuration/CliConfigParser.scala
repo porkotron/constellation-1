@@ -33,14 +33,16 @@ object CliConfigParser {
         .action((x, c) => c.copy(debug = true))
         .text("run the node in debug mode"),
       opt[Unit]('o', "offline")
-        .action((x, c) => c.copy(startOfflineMode = true))
+        .action((x, c) => c.copy(offlineMode = true))
         .text("Start the node in offline mode. Won't connect automatically"),
       opt[Unit]('l', "light")
         .action((x, c) => c.copy(lightNode = true))
         .text("Start a light node, only validates & stores portions of the graph"),
       opt[Unit]('g', "genesis")
-        .action((x, c) => c.copy(genesisNode = true))
-        .text("Start in single node genesis mode"),
+        .action((x, c) => c.copy(genesisNode = true)),
+      opt[Unit]('r', "rollback")
+        .action((x, c) => c.copy(rollbackMode = true))
+        .text("Start in rollback mode"),
       opt[Unit]('t', "test-mode")
         .action((x, c) => c.copy(testMode = true))
         .text("Run with test settings"),
@@ -62,6 +64,11 @@ object CliConfigParser {
             _ <- checkConfigOption(
               c.keyStorePath != null && c.alias == null,
               "you must provide --alias when using keystore"
+            )
+
+            _ <- checkConfigOption(
+              c.rollbackMode && c.genesisNode,
+              "can't start in genesis mode and perform rollback at the same time"
             )
           } yield ()
       )

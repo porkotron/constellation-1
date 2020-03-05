@@ -60,7 +60,7 @@ class Cluster[F[_]: Concurrent: Timer: ContextShift](
   implicit C: ContextShift[F]
 ) {
   private val initialState: NodeState =
-    if (dao.nodeConfig.cliConfig.startOfflineMode) NodeState.Offline else NodeState.PendingDownload
+    if (dao.nodeConfig.cliConfig.offlineMode) NodeState.Offline else NodeState.PendingDownload
   private val nodeState: Ref[F, NodeState] = Ref.unsafe[F, NodeState](initialState)
   private val peers: Ref[F, Map[Id, PeerData]] = Ref.unsafe[F, Map[Id, PeerData]](Map.empty)
 

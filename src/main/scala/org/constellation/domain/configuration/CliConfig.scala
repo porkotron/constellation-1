@@ -11,8 +11,9 @@ case class CliConfig(
   keyPassword: String = null,
   alias: String = null,
   debug: Boolean = false,
-  startOfflineMode: Boolean = false,
+  offlineMode: Boolean = false,
   lightNode: Boolean = false,
   genesisNode: Boolean = false,
-  testMode: Boolean = false
+  testMode: Boolean = false,
+  rollbackMode: Boolean = false
 )
